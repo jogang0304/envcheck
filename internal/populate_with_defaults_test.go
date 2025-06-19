@@ -44,8 +44,18 @@ func TestPopulateUnsetRequiredVarsWithDefaults(t *testing.T) {
 			name: "All vars have defaults",
 			config: internal.Config{
 				Vars: []internal.VarEntry{
-					{Name: "EXAMPLE_VAR", Required: true, Type: internal.StringType, DefaultValue: "default_example"},
-					{Name: "ANOTHER_VAR", Required: false, Type: internal.StringType, DefaultValue: "default_another"},
+					{
+						Name:         "EXAMPLE_VAR",
+						Required:     true,
+						Type:         internal.StringType,
+						DefaultValue: "default_example",
+					},
+					{
+						Name:         "ANOTHER_VAR",
+						Required:     false,
+						Type:         internal.StringType,
+						DefaultValue: "default_another",
+					},
 				},
 			},
 			presetVars: map[string]any{
@@ -76,9 +86,19 @@ func TestPopulateUnsetRequiredVarsWithDefaults(t *testing.T) {
 			name: "Some vars have defaults",
 			config: internal.Config{
 				Vars: []internal.VarEntry{
-					{Name: "EXAMPLE_VAR", Required: true, Type: internal.StringType, DefaultValue: "default_example"},
+					{
+						Name:         "EXAMPLE_VAR",
+						Required:     true,
+						Type:         internal.StringType,
+						DefaultValue: "default_example",
+					},
 					{Name: "ANOTHER_VAR", Required: false, Type: internal.StringType},
-					{Name: "SOME_VAR", Required: true, Type: internal.StringType, DefaultValue: "default_some"},
+					{
+						Name:         "SOME_VAR",
+						Required:     true,
+						Type:         internal.StringType,
+						DefaultValue: "default_some",
+					},
 				},
 			},
 			presetVars: map[string]any{
@@ -128,7 +148,12 @@ func TestPopulateUnsetRequiredVarsWithDefaults(t *testing.T) {
 				}
 				expectedValue := fmt.Sprintf("%v", tc.expectedResult[v])
 				if value != expectedValue {
-					t.Errorf("environment variable %s has value %s, expected %s", v, value, expectedValue)
+					t.Errorf(
+						"environment variable %s has value %s, expected %s",
+						v,
+						value,
+						expectedValue,
+					)
 				}
 			}
 		})

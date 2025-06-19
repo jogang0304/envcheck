@@ -31,7 +31,7 @@ func TestLoadDotenvFromFile(t *testing.T) {
 		// Create a temporary .env file
 		envFilePath := tempdir + "/.env"
 
-		err := os.WriteFile(envFilePath, []byte(envFileContent), 0644)
+		err := os.WriteFile(envFilePath, []byte(envFileContent), 0o644)
 		if err != nil {
 			t.Fatalf("failed to create .env file: %v", err)
 		}
@@ -50,7 +50,12 @@ func TestLoadDotenvFromFile(t *testing.T) {
 				continue
 			}
 			if value != expectedValue {
-				t.Errorf("environment variable %s has value %s, expected %s", key, value, expectedValue)
+				t.Errorf(
+					"environment variable %s has value %s, expected %s",
+					key,
+					value,
+					expectedValue,
+				)
 			}
 		}
 	})
@@ -65,12 +70,11 @@ func TestLoadDotenvFromFile(t *testing.T) {
 
 		for _, content := range invalidContents {
 			t.Run("Invalid content: "+content, func(t *testing.T) {
-
 				tempdir := t.TempDir()
 
 				// Create a temporary .env file with invalid content
 				envFilePath := tempdir + "/.env"
-				err := os.WriteFile(envFilePath, []byte(content), 0644)
+				err := os.WriteFile(envFilePath, []byte(content), 0o644)
 				if err != nil {
 					t.Fatalf("failed to create .env file: %v", err)
 				}
@@ -91,12 +95,15 @@ func TestLoadDotenv(t *testing.T) {
 
 		// Create a temporary .env file
 		envFilePath := tempdir + "/.env"
-		err := os.WriteFile(envFilePath, []byte(envFileContent), 0644)
+		err := os.WriteFile(envFilePath, []byte(envFileContent), 0o644)
 		if err != nil {
 			t.Fatalf("failed to create .env file: %v", err)
 		}
 
-		os.Chdir(tempdir)
+		err = os.Chdir(tempdir)
+		if err != nil {
+			t.Fatalf("failed to chdir to %s", tempdir)
+		}
 
 		// Load the .env file
 		err = internal.LoadDotenv()
@@ -112,7 +119,12 @@ func TestLoadDotenv(t *testing.T) {
 				continue
 			}
 			if value != expectedValue {
-				t.Errorf("environment variable %s has value %s, expected %s", key, value, expectedValue)
+				t.Errorf(
+					"environment variable %s has value %s, expected %s",
+					key,
+					value,
+					expectedValue,
+				)
 			}
 		}
 	})
@@ -120,10 +132,14 @@ func TestLoadDotenv(t *testing.T) {
 	t.Run("Dotenv file does not exist in cwd", func(t *testing.T) {
 		// Change to a temporary directory
 		tempdir := t.TempDir()
-		os.Chdir(tempdir)
+
+		err := os.Chdir(tempdir)
+		if err != nil {
+			t.Fatalf("failed to chdir to %s", tempdir)
+		}
 
 		// Load the .env file
-		err := internal.LoadDotenv()
+		err = internal.LoadDotenv()
 		if err == nil {
 			t.Fatalf("should have failed because no .env file exists")
 		}

@@ -25,18 +25,21 @@ func createFilesInTempDir(t *testing.T, configFileContent, envFileContent string
 	tempdir := t.TempDir()
 
 	envYamlFilePath := tempdir + "/.env.yaml"
-	err := os.WriteFile(envYamlFilePath, []byte(configFileContent), 0644)
+	err := os.WriteFile(envYamlFilePath, []byte(configFileContent), 0o644)
 	if err != nil {
 		t.Fatalf("failed to create .env.yaml file: %v", err)
 	}
 
 	envFilePath := tempdir + "/.env"
-	err = os.WriteFile(envFilePath, []byte(envFileContent), 0644)
+	err = os.WriteFile(envFilePath, []byte(envFileContent), 0o644)
 	if err != nil {
 		t.Fatalf("failed to create .env file: %v", err)
 	}
 
-	os.Chdir(tempdir)
+	err = os.Chdir(tempdir)
+	if err != nil {
+		t.Fatalf("failed to chdir to %s", tempdir)
+	}
 }
 
 func Keys[M ~map[K]V, K comparable, V any](m M) []K {
@@ -71,7 +74,11 @@ func restoreEnv(env map[string]*string) {
 	}
 }
 
-func testLoadWithoutErrors(t *testing.T, configFileContent, envFileContent string, expectedVars map[string]string) {
+func testLoadWithoutErrors(
+	t *testing.T,
+	configFileContent, envFileContent string,
+	expectedVars map[string]string,
+) {
 	originalEnv := saveAndClearEnv(Keys(expectedVars))
 	defer restoreEnv(originalEnv)
 
@@ -85,7 +92,11 @@ func testLoadWithoutErrors(t *testing.T, configFileContent, envFileContent strin
 	checkEnvVars(t, expectedVars)
 }
 
-func testLoadWithErrors(t *testing.T, configFileContent, envFileContent, expectedError string, varsToClear []string) {
+func testLoadWithErrors(
+	t *testing.T,
+	configFileContent, envFileContent, expectedError string,
+	varsToClear []string,
+) {
 	originalEnv := saveAndClearEnv(varsToClear)
 	defer restoreEnv(originalEnv)
 
@@ -121,7 +132,7 @@ fifth VAR=  test 5
 secondVar=123secret456
 `
 
-		var expectedVars = map[string]string{
+		expectedVars := map[string]string{
 			"thirdVar":   "test123",
 			"fourth_var": "test4",
 			"fifth VAR":  "test 5",
@@ -145,7 +156,7 @@ vars:
 firstVar=test
 `
 
-			var expectedVars = map[string]string{
+			expectedVars := map[string]string{
 				"firstVar":  "test",
 				"secondVar": "def123",
 			}
@@ -165,7 +176,7 @@ firstVar=test
 `
 			const expectedError = "failed to validate required vars"
 
-			var varsToClean = []string{
+			varsToClean := []string{
 				"firstVar", "secondVar",
 			}
 
@@ -185,7 +196,7 @@ firstVar=test
 `
 		const expectedError = "failed to validate var types"
 
-		var varsToClean = []string{
+		varsToClean := []string{
 			"firstVar",
 		}
 
@@ -205,7 +216,7 @@ firstVar=123
 `
 		const expectedError = "failed to validate var patterns"
 
-		var varsToClean = []string{
+		varsToClean := []string{
 			"firstVar",
 		}
 
@@ -224,7 +235,7 @@ firstVar=123
 `
 		const expectedError = "failed to get config"
 
-		var varsToClean = []string{
+		varsToClean := []string{
 			"firstVar",
 		}
 

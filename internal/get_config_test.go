@@ -2,10 +2,9 @@ package internal_test
 
 import (
 	"os"
+	"reflect"
 	"strings"
 	"testing"
-
-	"reflect"
 
 	"github.com/jogang0304/envcheck/internal"
 )
@@ -19,15 +18,18 @@ func testGetConfigWithError(t *testing.T, configFileContent *string, expectedErr
 
 	if configFileContent != nil {
 		envFilePath := tempdir + "/.env.yaml"
-		err := os.WriteFile(envFilePath, []byte(*configFileContent), 0644)
+		err := os.WriteFile(envFilePath, []byte(*configFileContent), 0o644)
 		if err != nil {
 			t.Fatalf("failed to create .env.config file: %v", err)
 		}
 	}
 
-	os.Chdir(tempdir)
+	err := os.Chdir(tempdir)
+	if err != nil {
+		t.Fatalf("failed to chdir to %s", tempdir)
+	}
 
-	_, err := internal.GetConfig()
+	_, err = internal.GetConfig()
 	if err == nil {
 		t.Fatal("expected to get an error")
 	}
@@ -51,7 +53,7 @@ vars:
     type: string
     pattern: .*secret.*
 `
-		var expectedConfig internal.Config = internal.Config{
+		expectedConfig := internal.Config{
 			Vars: []internal.VarEntry{{
 				Name:         "firstVar",
 				Required:     false,
@@ -70,12 +72,15 @@ vars:
 		tempdir := t.TempDir()
 
 		envFilePath := tempdir + "/.env.yaml"
-		err := os.WriteFile(envFilePath, []byte(configFileContent), 0644)
+		err := os.WriteFile(envFilePath, []byte(configFileContent), 0o644)
 		if err != nil {
 			t.Fatalf("failed to create .env.yaml file: %v", err)
 		}
 
-		os.Chdir(tempdir)
+		err = os.Chdir(tempdir)
+		if err != nil {
+			t.Fatalf("failed to chdir to %s", tempdir)
+		}
 
 		c, err := internal.GetConfig()
 		if err != nil {
@@ -85,13 +90,13 @@ vars:
 		configIsCorrect := reflect.DeepEqual(c, expectedConfig)
 
 		if !configIsCorrect {
-			t.Errorf("Expected config: %v\n Actual config: %v", expectedConfig, c)
+			t.Errorf("expected config: %v\n Actual config: %v", expectedConfig, c)
 		}
 	})
 
 	t.Run("Invalid yaml file", func(t *testing.T) {
 		t.Run("Incorrect yaml indentation", func(t *testing.T) {
-			var configFileContent = `
+			configFileContent := `
 vars:
   - required: false
     name: firstVar
@@ -100,27 +105,27 @@ vars:
   - name: secondVar
  required: true
 `
-			const expectedErrorText = "Failed to unmarshal .env.config. Probably incorrect yaml structure"
+			const expectedErrorText = "failed to unmarshal .env.config. Probably incorrect yaml structure"
 
 			testGetConfigWithError(t, &configFileContent, expectedErrorText)
 		})
 
 		t.Run("No \"name\" field", func(t *testing.T) {
-			var configFileContent = `
+			configFileContent := `
 vars:
   - required: false
     type: int
     default_value: 0
   - name: secondVar
 `
-			const expectedErrorText = "Config has var without name"
+			const expectedErrorText = "config has var without name"
 
 			testGetConfigWithError(t, &configFileContent, expectedErrorText)
 		})
 	})
 
 	t.Run("No .env.yaml file", func(t *testing.T) {
-		const expectedErrorText = "Failed to read .env.yaml"
+		const expectedErrorText = "failed to read .env.yaml"
 
 		testGetConfigWithError(t, nil, expectedErrorText)
 	})

@@ -7,10 +7,14 @@ import (
 )
 
 func Load() error {
-	internal.LoadDotenv()
+	err := internal.LoadDotenv()
+	if err != nil {
+		return errors.Join(errors.New("failed to load .env"), err)
+	}
+
 	c, err := internal.GetConfig()
 	if err != nil {
-		return errors.Join(errors.New("failed to get config"))
+		return errors.Join(errors.New("failed to get config"), err)
 	}
 
 	err = internal.PopulateUnsetVarsWithDefaults(c)

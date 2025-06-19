@@ -18,7 +18,14 @@ func LoadDotenvFromFile(f string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("tried to close %s, but it is already closed", file.Name())
+		}
+	}()
+
 	// Read the file line by line
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -28,14 +35,14 @@ func LoadDotenvFromFile(f string) error {
 			continue
 		}
 		// Split the line into key and value
-		parts := strings.SplitN(line, "=", -1)
+		parts := strings.Split(line, "=")
 		if len(parts) != 2 {
 			return fmt.Errorf("invalid line in .env file: %s", line)
 		}
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
 
-		//If value is covered in quotes, remove them
+		// If value is covered in quotes, remove them
 		if len(value) > 1 && value[0] == '"' && value[len(value)-1] == '"' {
 			value = value[1 : len(value)-1]
 		} else if len(value) > 1 && value[0] == '\'' && value[len(value)-1] == '\'' {

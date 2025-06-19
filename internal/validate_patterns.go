@@ -25,7 +25,12 @@ func ValidateVarPatterns(c Config) error {
 		}
 
 		if v.Type != StringType {
-			return fmt.Errorf("variable \"%s\" has type %s, pattern are supported only for type %s", v.Name, v.Type, StringType)
+			return fmt.Errorf(
+				"variable \"%s\" has type %s, pattern are supported only for type %s",
+				v.Name,
+				v.Type,
+				StringType,
+			)
 		}
 
 		// Check if the value matches the pattern

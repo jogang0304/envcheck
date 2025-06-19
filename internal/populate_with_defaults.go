@@ -17,7 +17,7 @@ func PopulateUnsetVarsWithDefaults(c Config) error {
 			if v.DefaultValue != nil {
 				err := os.Setenv(v.Name, fmt.Sprintf("%v", v.DefaultValue))
 				if err != nil {
-					return errors.Join(errors.New("Failed to set env var"), err)
+					return errors.Join(errors.New("failed to set env var"), err)
 				}
 			}
 		}
