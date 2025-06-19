@@ -22,11 +22,21 @@ type VarEntry struct {
 	Required     bool             `yaml:"required"`
 	Type         SupportedVarType `yaml:"type"`
 	DefaultValue any              `yaml:"default_value"`
-	Pattern      string           `yaml:"pattern"`
+	Pattern      *string          `yaml:"pattern"`
 }
 
 type Config struct {
 	Vars []VarEntry `yaml:"vars"`
+}
+
+func checkRequiredFields(config *Config) error {
+	for _, v := range config.Vars {
+		if v.Name == "" {
+			return errors.New("Config has var without name")
+		}
+	}
+
+	return nil
 }
 
 /*
@@ -42,6 +52,11 @@ func GetConfig() (Config, error) {
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		return Config{}, errors.Join(errors.New("Failed to unmarshal .env.config. Probably incorrect yaml structure"), err)
+	}
+
+	err = checkRequiredFields(&config)
+	if err != nil {
+		return Config{}, errors.Join(errors.New("Failed to check required fields"), err)
 	}
 
 	return config, nil

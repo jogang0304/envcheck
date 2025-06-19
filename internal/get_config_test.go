@@ -10,6 +10,34 @@ import (
 	"github.com/jogang0304/envcheck/internal"
 )
 
+func StringPtr(s string) *string {
+	return &s
+}
+
+func testGetConfigWithError(t *testing.T, configFileContent *string, expectedErrorText string) {
+	tempdir := t.TempDir()
+
+	if configFileContent != nil {
+		envFilePath := tempdir + "/.env.yaml"
+		err := os.WriteFile(envFilePath, []byte(*configFileContent), 0644)
+		if err != nil {
+			t.Fatalf("failed to create .env.config file: %v", err)
+		}
+	}
+
+	os.Chdir(tempdir)
+
+	_, err := internal.GetConfig()
+	if err == nil {
+		t.Fatal("expected to get an error")
+	}
+
+	hasExpectedError := strings.Contains(err.Error(), expectedErrorText)
+	if !hasExpectedError {
+		t.Fatalf("expected error \"%v\", got \"%v\"", expectedErrorText, err)
+	}
+}
+
 func TestGetConfig(t *testing.T) {
 	t.Run("Valid config file", func(t *testing.T) {
 		const configFileContent = `
@@ -29,12 +57,12 @@ vars:
 				Required:     false,
 				Type:         internal.IntType,
 				DefaultValue: 0,
-				Pattern:      "",
+				Pattern:      nil,
 			}, {
 				Name:         "secondVar",
 				Required:     true,
 				Type:         internal.StringType,
-				Pattern:      ".*secret.*",
+				Pattern:      StringPtr(".*secret.*"),
 				DefaultValue: nil,
 			}},
 		}
@@ -44,7 +72,7 @@ vars:
 		envFilePath := tempdir + "/.env.yaml"
 		err := os.WriteFile(envFilePath, []byte(configFileContent), 0644)
 		if err != nil {
-			t.Fatalf("failed to create .env.config file: %v", err)
+			t.Fatalf("failed to create .env.yaml file: %v", err)
 		}
 
 		os.Chdir(tempdir)
@@ -62,52 +90,38 @@ vars:
 	})
 
 	t.Run("Invalid yaml file", func(t *testing.T) {
-		const configFileContent = `
+		t.Run("Incorrect yaml indentation", func(t *testing.T) {
+			var configFileContent = `
 vars:
-  -required: false
+  - required: false
+    name: firstVar
     type: int
     default_value: 0
   - name: secondVar
-required: true
+ required: true
 `
-		const expectedErrorText = "Failed to unmarshal .env.config. Probably incorrect yaml structure"
+			const expectedErrorText = "Failed to unmarshal .env.config. Probably incorrect yaml structure"
 
-		tempdir := t.TempDir()
+			testGetConfigWithError(t, &configFileContent, expectedErrorText)
+		})
 
-		envFilePath := tempdir + "/.env.yaml"
-		err := os.WriteFile(envFilePath, []byte(configFileContent), 0644)
-		if err != nil {
-			t.Fatalf("failed to create .env.config file: %v", err)
-		}
+		t.Run("No \"name\" field", func(t *testing.T) {
+			var configFileContent = `
+vars:
+  - required: false
+    type: int
+    default_value: 0
+  - name: secondVar
+`
+			const expectedErrorText = "Config has var without name"
 
-		os.Chdir(tempdir)
-
-		_, err = internal.GetConfig()
-		if err == nil {
-			t.Fatal("expected to get an error")
-		}
-
-		hasExpectedError := strings.Contains(err.Error(), expectedErrorText)
-		if !hasExpectedError {
-			t.Fatalf("expected error \"%v\", got \"%v\"", expectedErrorText, err)
-		}
+			testGetConfigWithError(t, &configFileContent, expectedErrorText)
+		})
 	})
 
 	t.Run("No .env.yaml file", func(t *testing.T) {
 		const expectedErrorText = "Failed to read .env.yaml"
 
-		tempdir := t.TempDir()
-
-		os.Chdir(tempdir)
-
-		_, err := internal.GetConfig()
-		if err == nil {
-			t.Fatal("expected to get an error")
-		}
-
-		hasExpectedError := strings.Contains(err.Error(), expectedErrorText)
-		if !hasExpectedError {
-			t.Fatalf("expected error \"%v\", got \"%v\"", expectedErrorText, err)
-		}
+		testGetConfigWithError(t, nil, expectedErrorText)
 	})
 }

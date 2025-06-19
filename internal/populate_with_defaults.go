@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -14,7 +15,10 @@ func PopulateUnsetVarsWithDefaults(c Config) error {
 		_, isSet := os.LookupEnv(v.Name)
 		if !isSet {
 			if v.DefaultValue != nil {
-				os.Setenv(v.Name, fmt.Sprintf("%v", v.DefaultValue))
+				err := os.Setenv(v.Name, fmt.Sprintf("%v", v.DefaultValue))
+				if err != nil {
+					return errors.Join(errors.New("Failed to set env var"), err)
+				}
 			}
 		}
 	}

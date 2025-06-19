@@ -10,27 +10,27 @@ func Load() error {
 	internal.LoadDotenv()
 	c, err := internal.GetConfig()
 	if err != nil {
-		return errors.Join(err, errors.New("failed to get config"))
+		return errors.Join(errors.New("failed to get config"))
 	}
 
 	err = internal.PopulateUnsetVarsWithDefaults(c)
 	if err != nil {
-		return errors.Join(err, errors.New("failed to populate unset vars with defaults"))
+		return errors.Join(errors.New("failed to populate unset vars with defaults"), err)
 	}
 
 	err = internal.ValidateRequiredVars(c)
 	if err != nil {
-		return errors.Join(err, errors.New("failed to validate required vars"))
+		return errors.Join(errors.New("failed to validate required vars"), err)
 	}
 
 	err = internal.ValidateVarTypes(c)
 	if err != nil {
-		return errors.Join(err, errors.New("failed to validate var types"))
+		return errors.Join(errors.New("failed to validate var types"), err)
 	}
 
 	err = internal.ValidateVarPatterns(c)
 	if err != nil {
-		return errors.Join(err, errors.New("failed to validate var patterns"))
+		return errors.Join(errors.New("failed to validate var patterns"), err)
 	}
 
 	return nil

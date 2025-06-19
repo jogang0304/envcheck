@@ -7,15 +7,14 @@ import (
 )
 
 /*
-If var.Pattern is not empty, it is a regex with which var value should be checked.
-If var type is not a string, it should be converted to string and then checked with regex.
+If var.Pattern is not empty, it is a regex against which var value should be checked.
 */
 func ValidateVarPatterns(c Config) error {
 	// Validate the patterns of the variables
 	vars := c.Vars
 
 	for _, v := range vars {
-		if v.Pattern == "" {
+		if v.Pattern == nil {
 			continue
 		}
 
@@ -26,17 +25,16 @@ func ValidateVarPatterns(c Config) error {
 		}
 
 		if v.Type != StringType {
-			// Convert the value to string
-			value = fmt.Sprintf("%v", value)
+			return fmt.Errorf("variable \"%s\" has type %s, pattern are supported only for type %s", v.Name, v.Type, StringType)
 		}
 
 		// Check if the value matches the pattern
-		matched, err := regexp.MatchString(v.Pattern, value)
+		matched, err := regexp.MatchString(*v.Pattern, value)
 		if err != nil {
 			return fmt.Errorf("failed to compile regex for variable %s: %w", v.Name, err)
 		}
 		if !matched {
-			return fmt.Errorf("variable %s does not match the pattern %s", v.Name, v.Pattern)
+			return fmt.Errorf("variable %s does not match pattern %v", v.Name, *v.Pattern)
 		}
 	}
 	return nil
