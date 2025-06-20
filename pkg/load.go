@@ -12,27 +12,27 @@ func Load() error {
 		return errors.Join(errors.New("failed to load .env"), err)
 	}
 
-	c, err := internal.GetConfig()
+	config, err := internal.GetConfig()
 	if err != nil {
 		return errors.Join(errors.New("failed to get config"), err)
 	}
 
-	err = internal.PopulateUnsetVarsWithDefaults(&c)
+	err = internal.PopulateUnsetVarsWithDefaults(&config)
 	if err != nil {
 		return errors.Join(errors.New("failed to populate unset vars with defaults"), err)
 	}
 
-	err = internal.ValidateRequiredVars(&c)
+	err = internal.ValidateRequired(&config)
 	if err != nil {
 		return errors.Join(errors.New("failed to validate required vars"), err)
 	}
 
-	err = internal.ValidateVarTypes(&c)
+	err = internal.ValidateTypes(&config)
 	if err != nil {
 		return errors.Join(errors.New("failed to validate var types"), err)
 	}
 
-	err = internal.ValidateVarPatterns(&c)
+	err = internal.ValidatePatterns(&config)
 	if err != nil {
 		return errors.Join(errors.New("failed to validate var patterns"), err)
 	}

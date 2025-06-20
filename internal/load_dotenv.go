@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -13,6 +14,8 @@ They iterate by lines and set os.env variables.
 If the file is not found, it returns an error.
 */
 func LoadDotenvFromFile(f string) error {
+	var loadError error = nil
+
 	// Open the file
 	file, err := os.Open(f)
 	if err != nil {
@@ -37,7 +40,8 @@ func LoadDotenvFromFile(f string) error {
 		// Split the line into key and value
 		parts := strings.Split(line, "=")
 		if len(parts) != 2 {
-			return fmt.Errorf("invalid line in .env file: %s", line)
+			loadError = errors.Join(fmt.Errorf("invalid line in .env file: %s", line), loadError)
+			continue
 		}
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
@@ -51,25 +55,33 @@ func LoadDotenvFromFile(f string) error {
 
 		// Set the environment variable
 		if err := os.Setenv(key, value); err != nil {
-			return fmt.Errorf("failed to set env var %s: %w", key, err)
+			loadError = errors.Join(
+				fmt.Errorf("failed to set env var %s\n\t%w", key, err),
+				loadError,
+			)
 		}
 	}
-	return nil
+	return loadError
 }
 
 /*
 Detects in which directory go.mod is located and loads .env file from there.
 */
 func LoadDotenv() error {
+	var loadError error = nil
+
 	// Get the current working directory
 	cwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("failed to get current working directory: %w", err)
+		loadError = errors.Join(
+			errors.Join(errors.New("failed to get current working directory"), err),
+			loadError,
+		)
 	}
 
 	if err := LoadDotenvFromFile(cwd + "/.env"); err != nil {
-		return fmt.Errorf("failed to load .env file: %w", err)
+		loadError = errors.Join(fmt.Errorf("failed to load .env file\n\t%w", err), loadError)
 	}
 
-	return nil
+	return loadError
 }

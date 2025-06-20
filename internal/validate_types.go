@@ -1,12 +1,15 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 )
 
-func ValidateVarTypes(c *Config) error {
+func ValidateTypes(c *Config) error {
+	var typeError error = nil
+
 	for _, v := range c.Vars {
 		value, ok := os.LookupEnv(v.Name)
 		if !ok {
@@ -17,22 +20,22 @@ func ValidateVarTypes(c *Config) error {
 			continue // anything can be a string
 		} else if v.Type == IntType {
 			if _, err := strconv.Atoi(value); err != nil {
-				return fmt.Errorf("var %s is not a valid int", v.Name)
+				typeError = errors.Join(fmt.Errorf("var %s is not a valid int", v.Name), typeError)
 			}
 		} else if v.Type == FloatType {
 			if _, err := strconv.ParseFloat(value, 64); err != nil {
-				return fmt.Errorf("var %s is not a valid float", v.Name)
+				typeError = errors.Join(fmt.Errorf("var %s is not a valid float", v.Name), typeError)
 			}
 		} else if v.Type == BoolType {
 			if _, err := strconv.ParseBool(value); err != nil {
-				return fmt.Errorf("var %s is not a valid bool", v.Name)
+				typeError = errors.Join(fmt.Errorf("var %s is not a valid bool", v.Name), typeError)
 			}
 		} else if v.Type == AnyType {
 			continue
 		} else {
-			return fmt.Errorf("var %s has an unsupported type", v.Name)
+			typeError = errors.Join(fmt.Errorf("var %s has an unsupported type", v.Name), typeError)
 		}
 	}
 
-	return nil
+	return typeError
 }

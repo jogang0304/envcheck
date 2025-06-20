@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -9,7 +10,9 @@ import (
 /*
 If var.Pattern is not empty, it is a regex against which var value should be checked.
 */
-func ValidateVarPatterns(c *Config) error {
+func ValidatePatterns(c *Config) error {
+	var patternError error = nil
+
 	for _, v := range c.Vars {
 		if v.Pattern == nil {
 			continue
@@ -33,11 +36,18 @@ func ValidateVarPatterns(c *Config) error {
 		// Check if the value matches the pattern
 		matched, err := regexp.MatchString(*v.Pattern, value)
 		if err != nil {
-			return fmt.Errorf("failed to compile regex for variable %s: %w", v.Name, err)
+			patternError = errors.Join(
+				fmt.Errorf("failed to compile regex for variable %s: %w", v.Name, err),
+				patternError,
+			)
 		}
 		if !matched {
-			return fmt.Errorf("variable %s does not match pattern %v", v.Name, *v.Pattern)
+			patternError = errors.Join(
+				fmt.Errorf("variable %s does not match pattern %v", v.Name, *v.Pattern),
+				patternError,
+			)
 		}
 	}
-	return nil
+
+	return patternError
 }
