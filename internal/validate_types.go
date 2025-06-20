@@ -6,11 +6,8 @@ import (
 	"strconv"
 )
 
-func ValidateVarTypes(c Config) error {
-	// Validate var types
-	vars := c.Vars
-
-	for _, v := range vars {
+func ValidateVarTypes(c *Config) error {
+	for _, v := range c.Vars {
 		value, ok := os.LookupEnv(v.Name)
 		if !ok {
 			continue // unset vars do not have type. Wether they are allowed to be unset is handled in ValidateRequiredVars

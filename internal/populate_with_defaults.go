@@ -9,9 +9,8 @@ import (
 /*
 This function iterates through c["vars"] and for each var that is not set, it populates the var with its default value. "Populate" means to set os.env[var.Name].
 */
-func PopulateUnsetVarsWithDefaults(c Config) error {
-	vars := c.Vars
-	for _, v := range vars {
+func PopulateUnsetVarsWithDefaults(c *Config) error {
+	for _, v := range c.Vars {
 		_, isSet := os.LookupEnv(v.Name)
 		if !isSet {
 			if v.DefaultValue != nil {

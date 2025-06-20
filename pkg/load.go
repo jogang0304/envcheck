@@ -17,22 +17,22 @@ func Load() error {
 		return errors.Join(errors.New("failed to get config"), err)
 	}
 
-	err = internal.PopulateUnsetVarsWithDefaults(c)
+	err = internal.PopulateUnsetVarsWithDefaults(&c)
 	if err != nil {
 		return errors.Join(errors.New("failed to populate unset vars with defaults"), err)
 	}
 
-	err = internal.ValidateRequiredVars(c)
+	err = internal.ValidateRequiredVars(&c)
 	if err != nil {
 		return errors.Join(errors.New("failed to validate required vars"), err)
 	}
 
-	err = internal.ValidateVarTypes(c)
+	err = internal.ValidateVarTypes(&c)
 	if err != nil {
 		return errors.Join(errors.New("failed to validate var types"), err)
 	}
 
-	err = internal.ValidateVarPatterns(c)
+	err = internal.ValidateVarPatterns(&c)
 	if err != nil {
 		return errors.Join(errors.New("failed to validate var patterns"), err)
 	}

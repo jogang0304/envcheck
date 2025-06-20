@@ -127,7 +127,7 @@ func TestPopulateUnsetRequiredVarsWithDefaults(t *testing.T) {
 				t.Setenv(key, fmt.Sprintf("%v", value))
 			}
 
-			err := internal.PopulateUnsetVarsWithDefaults(tc.config)
+			err := internal.PopulateUnsetVarsWithDefaults(&tc.config)
 			if err != nil {
 				t.Fatalf("failed to populate unset vars with defaults: %v", err)
 			}

@@ -9,11 +9,8 @@ import (
 /*
 If var.Pattern is not empty, it is a regex against which var value should be checked.
 */
-func ValidateVarPatterns(c Config) error {
-	// Validate the patterns of the variables
-	vars := c.Vars
-
-	for _, v := range vars {
+func ValidateVarPatterns(c *Config) error {
+	for _, v := range c.Vars {
 		if v.Pattern == nil {
 			continue
 		}
@@ -26,7 +23,7 @@ func ValidateVarPatterns(c Config) error {
 
 		if v.Type != StringType {
 			return fmt.Errorf(
-				"variable \"%s\" has type %s, pattern are supported only for type %s",
+				"variable \"%s\" has type %s, \"pattern\" is supported only for type %s",
 				v.Name,
 				v.Type,
 				StringType,
