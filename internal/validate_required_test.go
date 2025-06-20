@@ -8,7 +8,7 @@ import (
 	"github.com/jogang0304/envcheck/internal"
 )
 
-func TestValidateRequiered(t *testing.T) {
+func TestValidateRequired(t *testing.T) {
 	t.Run("All vars have Required field", func(t *testing.T) {
 		config := internal.Config{
 			Vars: []internal.VarEntry{
