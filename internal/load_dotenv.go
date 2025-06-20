@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -16,21 +17,13 @@ If the file is not found, it returns an error.
 func LoadDotenvFromFile(f string) error {
 	var loadError error = nil
 
-	// Open the file
-	file, err := os.Open(f)
+	fileBytes, err := os.ReadFile(f)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read .env\n\t %w", err)
 	}
 
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			fmt.Printf("tried to close %s, but it is already closed", file.Name())
-		}
-	}()
-
 	// Read the file line by line
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(bytes.NewReader(fileBytes))
 	for scanner.Scan() {
 		line := scanner.Text()
 		// Skip empty lines and comments
