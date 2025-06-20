@@ -52,7 +52,7 @@ func GetConfig() (Config, error) {
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		return Config{}, errors.Join(
-			errors.New("failed to unmarshal .env.config. Probably incorrect yaml structure"),
+			errors.New("failed to unmarshal .env.yaml. Probably incorrect yaml structure"),
 			err,
 		)
 	}

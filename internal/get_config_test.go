@@ -105,7 +105,7 @@ vars:
   - name: secondVar
  required: true
 `
-			const expectedErrorText = "failed to unmarshal .env.config. Probably incorrect yaml structure"
+			const expectedErrorText = "failed to unmarshal .env.yaml. Probably incorrect yaml structure"
 
 			testGetConfigWithError(t, &configFileContent, expectedErrorText)
 		})
